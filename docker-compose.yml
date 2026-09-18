@@ -1,6 +1,6 @@
 services:
   tsusage-hub:
-    image: ghcr.io/<YOUR_GITHUB_USERNAME>/tsusage-hub:latest
+    image: ghcr.io/cloudrobot/tsusage-hub:latest
     container_name: tsusage-hub
     restart: unless-stopped
     ports:

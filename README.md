@@ -12,11 +12,7 @@
 
 ```bash
 cd F:\opencode\tsusage-hub
-git init
-git add .
-git commit -m "feat: initial tsusage-hub release"
-git branch -M main
-git remote add origin https://github.com/<你的GitHub用户名>/tsusage-hub.git
+git remote set-url origin git@CloudRobot:CloudRobot/tsusage-hub.git
 git push -u origin main
 ```
 
@@ -37,7 +33,7 @@ git push -u origin main
 ```yaml
 services:
   tsusage-hub:
-    image: ghcr.io/<你的GitHub用户名>/tsusage-hub:latest
+    image: ghcr.io/cloudrobot/tsusage-hub:latest
     container_name: tsusage-hub
     restart: unless-stopped
     ports:
