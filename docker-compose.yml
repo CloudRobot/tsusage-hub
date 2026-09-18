@@ -1,0 +1,14 @@
+services:
+  tsusage-hub:
+    image: ghcr.io/<YOUR_GITHUB_USERNAME>/tsusage-hub:latest
+    container_name: tsusage-hub
+    restart: unless-stopped
+    ports:
+      - "3888:3888"
+    volumes:
+      - /mnt/user/appdata/tsusage-hub/data:/data
+    environment:
+      - PORT=3888
+      - DB_PATH=/data/usage.db
+      - TZ=Asia/Shanghai
+      # - AUTH_TOKEN=your_secret_token_here

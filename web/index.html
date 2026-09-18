@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Usage Hub - 多设备用量监控</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #818cf8;
+      --green: #34d399;
+      --card-bg: #1e293b80;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .title-group h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-live {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+    .title-group p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .controls { display: flex; align-items: center; gap: 12px; }
+    input[type="date"] {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    button:hover { background: #1e293b; border-color: var(--primary); }
+    
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .card-label { font-size: 13px; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+    .card-val { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .card-val.primary { color: var(--primary); }
+    .card-val.green { color: var(--green); }
+
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+    
+    .machines-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .machine-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .machine-chip strong { color: var(--primary); font-size: 14px; }
+    .machine-chip span { color: var(--muted); }
+
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      background: #0f172a;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .tag {
+      display: inline-block;
+      background: #334155;
+      color: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-right: 4px;
+    }
+    .app-tag {
+      font-weight: 600;
+      color: #7dd3fc;
+    }
+    tfoot td {
+      background: #0f172a;
+      font-weight: 700;
+      color: #f8fafc;
+      border-top: 2px solid var(--border);
+    }
+    .empty-state {
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-group">
+        <h1><span class="badge-live"></span> Token Usage Hub</h1>
+        <p>个人多设备 AI 算力账本与实时监控大屏</p>
+      </div>
+      <div class="controls">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none;">
+          <input type="checkbox" id="byMachineCheck" onchange="loadData()"> 按设备拆分明细
+        </label>
+        <input type="date" id="datePicker">
+        <button onclick="loadData()">刷新数据</button>
+      </div>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">今日总消耗 Tokens</div>
+        <div class="card-val primary" id="totalTokens">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label">预估总费用 (USD)</div>
+        <div class="card-val green" id="totalCost">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label">上报活跃设备</div>
+        <div class="card-val" id="activeMachines">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label">涉及模型数</div>
+        <div class="card-val" id="activeModels">-</div>
+      </div>
+    </div>
+
+    <div class="section-title">设备用量分布</div>
+    <div class="machines-bar" id="machinesBar">
+      <div style="color: var(--muted); font-size: 13px;">暂无上报设备</div>
+    </div>
+
+    <div class="section-title">模型明细报表</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>应用</th>
+            <th>模型</th>
+            <th class="num">Input</th>
+            <th class="num">Output</th>
+            <th class="num">CacheRead</th>
+            <th class="num">CacheWrite</th>
+            <th class="num">总 Tokens</th>
+            <th class="num">费用 (USD)</th>
+            <th>贡献设备</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="9" class="empty-state">正在加载...</td></tr>
+        </tbody>
+        <tfoot id="tableFoot" style="display: none;">
+          <tr>
+            <td>TOTAL</td>
+            <td id="footModelSummary">全天总计</td>
+            <td class="num" id="footInput">-</td>
+            <td class="num" id="footOutput">-</td>
+            <td class="num" id="footCR">-</td>
+            <td class="num" id="footCW">-</td>
+            <td class="num" id="footTotal">-</td>
+            <td class="num" id="footCost">-</td>
+            <td>-</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const nf = new Intl.NumberFormat('en-US');
+    const usd = (n) => '$' + Number(n || 0).toFixed(4);
+
+    const datePicker = document.getElementById('datePicker');
+    // 默认选中本地日期
+    const today = new Date();
+    const localIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    datePicker.value = localIso;
+    datePicker.addEventListener('change', () => loadData());
+
+    async function loadData() {
+      const d = datePicker.value || localIso;
+      const byM = document.getElementById('byMachineCheck').checked ? '&by_machine=1' : '';
+      try {
+        const res = await fetch(`/api/daily?date=${d}${byM}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        render(data);
+      } catch (err) {
+        document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="empty-state" style="color: #ef4444;">加载失败: ${err.message}</td></tr>`;
+      }
+    }
+
+    function render(data) {
+      const items = data.items || [];
+      const machines = data.machines || [];
+      const totals = data.totals || { total: 0, cost: 0, input: 0, output: 0, cr: 0, cw: 0 };
+
+      // 顶部卡片
+      document.getElementById('totalTokens').innerText = nf.format(totals.total || 0);
+      document.getElementById('totalCost').innerText = usd(totals.cost || 0);
+      document.getElementById('activeMachines').innerText = `${machines.length} 台`;
+      document.getElementById('activeModels').innerText = `${items.length} 个`;
+
+      // 设备分布
+      const mBar = document.getElementById('machinesBar');
+      if (machines.length === 0) {
+        mBar.innerHTML = `<div style="color: var(--muted); font-size: 13px;">该日期暂无设备上报</div>`;
+      } else {
+        mBar.innerHTML = machines.map(m => `
+          <div class="machine-chip">
+            <div>
+              <strong>${m.machine}</strong>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">最后上报: ${m.last_seen.split('T')[1]?.slice(0,5) || m.last_seen.slice(11,16) || m.last_seen}</div>
+            </div>
+            <div>
+              <div style="font-weight: 600;">${nf.format(m.tokens)}</div>
+              <div style="font-size: 12px; color: var(--green);">${usd(m.cost)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 明细表格
+      const tbody = document.getElementById('tableBody');
+      const tfoot = document.getElementById('tableFoot');
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">该日期暂无使用记录</td></tr>`;
+        tfoot.style.display = 'none';
+        return;
+      }
+
+      tbody.innerHTML = items.map(i => `
+        <tr>
+          <td><span class="app-tag">${i.client}</span></td>
+          <td>${i.model}</td>
+          <td class="num">${nf.format(i.input)}</td>
+          <td class="num">${nf.format(i.output)}</td>
+          <td class="num">${nf.format(i.cr)}</td>
+          <td class="num">${nf.format(i.cw)}</td>
+          <td class="num"><strong>${nf.format(i.total)}</strong></td>
+          <td class="num">${usd(i.cost)}</td>
+          <td>${(i.machines || '').split(',').filter(Boolean).map(m => `<span class="tag">${m}</span>`).join('')}</td>
+        </tr>
+      `).join('');
+
+      // 底部总计
+      document.getElementById('footModelSummary').innerText = `${items.length} 个模型`;
+      document.getElementById('footInput').innerText = nf.format(totals.input);
+      document.getElementById('footOutput').innerText = nf.format(totals.output);
+      document.getElementById('footCR').innerText = nf.format(totals.cr);
+      document.getElementById('footCW').innerText = nf.format(totals.cw);
+      document.getElementById('footTotal').innerText = nf.format(totals.total);
+      document.getElementById('footCost').innerText = usd(totals.cost);
+      tfoot.style.display = '';
+    }
+
+    loadData();
+    // 默认每 30 秒轮询一次
+    setInterval(() => loadData(), 30000);
+  </script>
+</body>
+</html>
