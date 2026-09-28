@@ -523,6 +523,28 @@
     const usd = (n) => '$' + Number(n || 0).toFixed(4);
     const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
+    // Token 紧凑格式化（K / M / B / T），基于 1000 进制（保留最多2位小数并去除多余0）
+    function formatTokens(num) {
+      const n = Number(num || 0);
+      if (isNaN(n) || n === 0) return '0';
+      const abs = Math.abs(n);
+      const sign = n < 0 ? '-' : '';
+
+      if (abs >= 1e12) {
+        return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
+      }
+      if (abs >= 1e9) {
+        return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+      }
+      if (abs >= 1e6) {
+        return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+      }
+      if (abs >= 1e3) {
+        return sign + (abs / 1e3).toFixed(2).replace(/\.?0+$/, '') + 'K';
+      }
+      return sign + abs.toString();
+    }
+
     // 核心状态
     let currentPeriod = 'day'; // 'day' | 'week' | 'month'
     let currentDate = new Date(); // 基准日期（本地时间）
@@ -746,7 +768,10 @@
       const totals = data.totals || { total: 0, cost: 0, input: 0, output: 0, cr: 0, cw: 0 };
 
       // 顶部卡片
-      document.getElementById('totalTokens').innerText = nf.format(totals.total || 0);
+      const totalTokensEl = document.getElementById('totalTokens');
+      totalTokensEl.innerText = formatTokens(totals.total || 0);
+      totalTokensEl.title = `${nf.format(totals.total || 0)} tokens`;
+
       document.getElementById('totalCost').innerText = usd(totals.cost || 0);
       document.getElementById('activeMachines').innerText = `${machines.length} 台`;
       document.getElementById('activeModels').innerText = `${items.length} 个`;
@@ -771,7 +796,7 @@
                 <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">最后上报: ${timeDisplay}</div>
               </div>
               <div>
-                <div style="font-weight: 600;">${nf.format(m.tokens)}</div>
+                <div style="font-weight: 600;" title="${nf.format(m.tokens)} tokens">${formatTokens(m.tokens)}</div>
                 <div style="font-size: 12px; color: var(--green-dark);">${usd(m.cost)}</div>
               </div>
             </div>
@@ -793,11 +818,11 @@
         <tr>
           <td><span class="app-tag">${i.client}</span></td>
           <td>${i.model}</td>
-          <td class="num">${nf.format(i.input)}</td>
-          <td class="num">${nf.format(i.output)}</td>
-          <td class="num">${nf.format(i.cr)}</td>
-          <td class="num">${nf.format(i.cw)}</td>
-          <td class="num"><strong>${nf.format(i.total)}</strong></td>
+          <td class="num" title="${nf.format(i.input)} tokens">${formatTokens(i.input)}</td>
+          <td class="num" title="${nf.format(i.output)} tokens">${formatTokens(i.output)}</td>
+          <td class="num" title="${nf.format(i.cr)} tokens">${formatTokens(i.cr)}</td>
+          <td class="num" title="${nf.format(i.cw)} tokens">${formatTokens(i.cw)}</td>
+          <td class="num"><strong title="${nf.format(i.total)} tokens">${formatTokens(i.total)}</strong></td>
           <td class="num">${usd(i.cost)}</td>
           <td>${(i.machines || '').split(',').filter(Boolean).map(m => `<span class="tag">${m}</span>`).join('')}</td>
         </tr>
@@ -809,11 +834,17 @@
       else if (currentPeriod === 'month') periodLabel = '全月总计';
       document.getElementById('footModelSummary').innerText = `${periodLabel} (${items.length} 个模型)`;
 
-      document.getElementById('footInput').innerText = nf.format(totals.input);
-      document.getElementById('footOutput').innerText = nf.format(totals.output);
-      document.getElementById('footCR').innerText = nf.format(totals.cr);
-      document.getElementById('footCW').innerText = nf.format(totals.cw);
-      document.getElementById('footTotal').innerText = nf.format(totals.total);
+      function setFootToken(id, val) {
+        const el = document.getElementById(id);
+        el.innerText = formatTokens(val || 0);
+        el.title = `${nf.format(val || 0)} tokens`;
+      }
+
+      setFootToken('footInput', totals.input);
+      setFootToken('footOutput', totals.output);
+      setFootToken('footCR', totals.cr);
+      setFootToken('footCW', totals.cw);
+      setFootToken('footTotal', totals.total);
       document.getElementById('footCost').innerText = usd(totals.cost);
       tfoot.style.display = '';
     }
