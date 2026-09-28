@@ -6,25 +6,33 @@
   <title>Token Usage Hub - 多设备用量监控</title>
   <style>
     :root {
-      --bg: #0b0f19;
-      --surface: #131b2e;
-      --border: #1e293b;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --primary: #38bdf8;
-      --accent: #818cf8;
-      --green: #34d399;
-      --card-bg: #1e293b80;
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-subtle: rgba(0, 0, 0, 0.04);
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --muted-dark: #6e6e73;
+      --primary: #0071e3;
+      --primary-hover: #0077ed;
+      --primary-subtle: rgba(0, 113, 227, 0.08);
+      --green: #34c759;
+      --green-dark: #248a3d;
+      --green-subtle: rgba(52, 199, 89, 0.1);
+      --card-bg: #ffffff;
+      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      padding: 24px;
+      padding: 28px 24px;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    .container { max-width: 1180px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; }
     
     header {
       display: flex;
@@ -43,6 +51,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      color: var(--text);
     }
     .badge-live {
       display: inline-block;
@@ -50,31 +59,199 @@
       height: 8px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+      box-shadow: 0 0 8px rgba(52, 199, 89, 0.5);
     }
     .title-group p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-    .controls { display: flex; align-items: center; gap: 12px; }
-    input[type="date"] {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    button {
+
+    /* 苹果风格 Segmented Control 分段选择器 */
+    .period-tabs {
+      display: inline-flex;
+      background: rgba(120, 120, 128, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .period-tab {
+      background: transparent;
+      border: none;
+      color: var(--muted-dark);
+      padding: 5px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+    .period-tab:hover {
+      color: var(--text);
+    }
+    .period-tab.active {
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 日期选择导航器 */
+    .date-nav-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 2px 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .nav-arrow-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted-dark);
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+    .nav-arrow-btn:hover {
+      background: #f2f2f7;
+      color: var(--primary);
+    }
+    
+    .date-trigger-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f9f9fb;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 6px;
+      padding: 5px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      min-width: 175px;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .date-trigger-btn:hover {
+      border-color: rgba(0, 113, 227, 0.4);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    }
+    
+    /* 专为苹果浅色主题定制的高清日历图标 (SF Symbols 风格) */
+    .apple-cal-icon {
+      flex-shrink: 0;
+      display: block;
+    }
+    .date-trigger-btn .caret-icon {
+      color: var(--muted);
+      margin-left: 2px;
+      flex-shrink: 0;
+    }
+
+    /* 隐藏原生输入控件的所有默认外观与微型图标，彻底避免浏览器默认丑陋 indicator 露出 */
+    .sr-only-picker {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="month"]::-webkit-calendar-picker-indicator,
+    input[type="date"]::-webkit-inner-spin-button,
+    input[type="month"]::-webkit-inner-spin-button,
+    input[type="date"]::-webkit-clear-button,
+    input[type="month"]::-webkit-clear-button {
+      display: none !important;
+      -webkit-appearance: none !important;
+      appearance: none !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* 回到今天 / 本周 / 本月 快捷按钮 */
+    .btn-quick-now {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted-dark);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .btn-quick-now:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #ffffff;
+    }
+    .btn-quick-now.is-current {
+      border-color: rgba(52, 199, 89, 0.35);
+      color: var(--green-dark);
+      background: var(--green-subtle);
+    }
+
+    button.btn-refresh {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 16px;
+      padding: 6px 13px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
-    button:hover { background: #1e293b; border-color: var(--primary); }
+    button.btn-refresh:hover {
+      background: #ffffff;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .split-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted-dark);
+      cursor: pointer;
+      user-select: none;
+      margin-right: 4px;
+    }
+    .split-checkbox-label input[type="checkbox"] {
+      accent-color: var(--primary);
+    }
     
     .cards {
       display: grid;
@@ -86,15 +263,38 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       padding: 20px;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s ease;
     }
-    .card-label { font-size: 13px; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-    .card-val { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .card:hover {
+      box-shadow: var(--card-shadow-hover);
+    }
+    .card-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .card-val {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 8px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
+    }
     .card-val.primary { color: var(--primary); }
-    .card-val.green { color: var(--green); }
+    .card-val.green { color: var(--green-dark); }
 
-    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--muted-dark);
+      letter-spacing: -0.2px;
+    }
     
     .machines-bar {
       display: flex;
@@ -105,12 +305,17 @@
     .machine-chip {
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 10px 16px;
-      border-radius: 10px;
+      padding: 11px 18px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       font-size: 13px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s;
+    }
+    .machine-chip:hover {
+      box-shadow: var(--card-shadow-hover);
     }
     .machine-chip strong { color: var(--primary); font-size: 14px; }
     .machine-chip span { color: var(--muted); }
@@ -118,47 +323,53 @@
     .table-container {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: var(--card-shadow);
     }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th {
-      background: #0f172a;
+      background: #fafafa;
       color: var(--muted);
       font-weight: 600;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 14px 16px;
+      padding: 13px 16px;
       border-bottom: 1px solid var(--border);
     }
     td {
-      padding: 14px 16px;
+      padding: 13px 16px;
       font-size: 14px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text);
     }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    tr:hover td { background: rgba(0, 0, 0, 0.015); }
     .num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
     .tag {
       display: inline-block;
-      background: #334155;
-      color: #e2e8f0;
-      padding: 3px 8px;
+      background: #f2f2f7;
+      color: #3a3a3c;
+      padding: 2px 7px;
       border-radius: 6px;
       font-size: 12px;
       font-weight: 500;
       margin-right: 4px;
     }
     .app-tag {
+      display: inline-block;
       font-weight: 600;
-      color: #7dd3fc;
+      color: var(--primary);
+      background: var(--primary-subtle);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 12px;
     }
     tfoot td {
-      background: #0f172a;
+      background: #fafafa;
       font-weight: 700;
-      color: #f8fafc;
+      color: var(--text);
       border-top: 2px solid var(--border);
     }
     .empty-state {
@@ -176,18 +387,80 @@
         <h1><span class="badge-live"></span> Token Usage Hub</h1>
         <p>个人多设备 AI 算力账本与实时监控大屏</p>
       </div>
+
       <div class="controls">
-        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none;">
+        <label class="split-checkbox-label">
           <input type="checkbox" id="byMachineCheck" onchange="loadData()"> 按设备拆分明细
         </label>
-        <input type="date" id="datePicker">
-        <button onclick="loadData()">刷新数据</button>
+
+        <!-- 维度切换 Tab：日 / 周 / 月 -->
+        <div class="period-tabs">
+          <button class="period-tab active" data-period="day" onclick="switchPeriod('day')">按日</button>
+          <button class="period-tab" data-period="week" onclick="switchPeriod('week')">按周</button>
+          <button class="period-tab" data-period="month" onclick="switchPeriod('month')">按月</button>
+        </div>
+
+        <!-- 日期导航与日历触发 -->
+        <div class="date-nav-group">
+          <button class="nav-arrow-btn" id="prevBtn" onclick="shiftPeriod(-1)" title="前一个周期">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <div class="date-trigger-btn" id="dateTriggerBtn" onclick="openPicker()" title="点击直接打开日历/时间选择">
+            <!-- 苹果 SF Symbols 风格的全新高清日历图标 (18x18) -->
+            <svg class="apple-cal-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <!-- 外框卡片 -->
+              <rect x="3" y="4.5" width="18" height="16.5" rx="3.5" stroke="#0071e3" stroke-width="1.8" fill="#ffffff" />
+              <!-- 顶部蓝色月份横栏 -->
+              <path d="M3 8C3 6.067 4.567 4.5 6.5 4.5H17.5C19.433 4.5 21 6.067 21 8V9H3V8Z" fill="#0071e3" />
+              <!-- 两个精致装订环 -->
+              <rect x="7" y="2" width="2" height="4.5" rx="1" fill="#0071e3" />
+              <rect x="15" y="2" width="2" height="4.5" rx="1" fill="#0071e3" />
+              <!-- 日期点阵 -->
+              <circle cx="7.5" cy="12.8" r="1.1" fill="#0071e3" />
+              <circle cx="12" cy="12.8" r="1.1" fill="#0071e3" />
+              <circle cx="16.5" cy="12.8" r="1.1" fill="#0071e3" />
+              <circle cx="7.5" cy="16.8" r="1.1" fill="#86868b" />
+              <circle cx="12" cy="16.8" r="1.1" fill="#86868b" />
+              <circle cx="16.5" cy="16.8" r="1.1" fill="#86868b" />
+            </svg>
+            <span id="dateDisplayText">正在获取日期...</span>
+            <svg class="caret-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+
+          <button class="nav-arrow-btn" id="nextBtn" onclick="shiftPeriod(1)" title="后一个周期">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 视觉上隐藏的原生输入控件，无任何默认丑陋 indicator 露出，纯粹供 JS 呼出面板 -->
+        <input type="date" id="hiddenDateInput" class="sr-only-picker" onchange="onDateInputChanged(this.value)">
+        <input type="month" id="hiddenMonthInput" class="sr-only-picker" onchange="onMonthInputChanged(this.value)">
+
+        <!-- 回到今天 / 本周 / 本月 -->
+        <button class="btn-quick-now" id="quickNowBtn" onclick="resetToNow()">今天</button>
+
+        <!-- 刷新数据 -->
+        <button class="btn-refresh" onclick="loadData()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          刷新
+        </button>
       </div>
     </header>
 
     <div class="cards">
       <div class="card">
-        <div class="card-label">今日总消耗 Tokens</div>
+        <div class="card-label" id="cardTokensLabel">今日总消耗 Tokens</div>
         <div class="card-val primary" id="totalTokens">-</div>
       </div>
       <div class="card">
@@ -248,19 +521,217 @@
   <script>
     const nf = new Intl.NumberFormat('en-US');
     const usd = (n) => '$' + Number(n || 0).toFixed(4);
+    const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
-    const datePicker = document.getElementById('datePicker');
-    // 默认选中本地日期
-    const today = new Date();
-    const localIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    datePicker.value = localIso;
-    datePicker.addEventListener('change', () => loadData());
+    // 核心状态
+    let currentPeriod = 'day'; // 'day' | 'week' | 'month'
+    let currentDate = new Date(); // 基准日期（本地时间）
+
+    // 工具函数：格式化 YYYY-MM-DD
+    function formatDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    // 工具函数：格式化 MM-DD
+    function formatShortDate(d) {
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${m}-${day}`;
+    }
+
+    // ISO 周数算法
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return { year: d.getUTCFullYear(), week: weekNo };
+    }
+
+    // 给定某天，获取该自然周的周一和周日 (Date 对象)
+    function getWeekRange(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = d.getDay(); // 0 is Sunday, 1 is Monday ...
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMonday);
+      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      return { monday, sunday };
+    }
+
+    // 给定某天，获取当月第 1 天和最后一天 (Date 对象)
+    function getMonthRange(date) {
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      return { firstDay, lastDay };
+    }
+
+    function isSameDay(d1, d2) {
+      return d1.getFullYear() === d2.getFullYear() &&
+             d1.getMonth() === d2.getMonth() &&
+             d1.getDate() === d2.getDate();
+    }
+
+    function isSameWeek(d1, d2) {
+      const r1 = getWeekRange(d1);
+      const r2 = getWeekRange(d2);
+      return formatDate(r1.monday) === formatDate(r2.monday);
+    }
+
+    function isSameMonth(d1, d2) {
+      return d1.getFullYear() === d2.getFullYear() &&
+             d1.getMonth() === d2.getMonth();
+    }
+
+    // 切换维度 (day / week / month)
+    function switchPeriod(p) {
+      if (currentPeriod === p) return;
+      currentPeriod = p;
+      updateUI();
+      loadData();
+    }
+
+    // 步进前进 / 后退一个周期
+    function shiftPeriod(delta) {
+      if (currentPeriod === 'day') {
+        currentDate.setDate(currentDate.getDate() + delta);
+      } else if (currentPeriod === 'week') {
+        currentDate.setDate(currentDate.getDate() + delta * 7);
+      } else if (currentPeriod === 'month') {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+      }
+      updateUI();
+      loadData();
+    }
+
+    // 回到当前周期
+    function resetToNow() {
+      currentDate = new Date();
+      updateUI();
+      loadData();
+    }
+
+    // 点击直接唤出日历
+    function openPicker() {
+      const input = currentPeriod === 'month' 
+        ? document.getElementById('hiddenMonthInput') 
+        : document.getElementById('hiddenDateInput');
+      if (input) {
+        if (typeof input.showPicker === 'function') {
+          try {
+            input.showPicker();
+            return;
+          } catch (e) {
+            // fallback
+          }
+        }
+        input.focus();
+      }
+    }
+
+    function onDateInputChanged(val) {
+      if (!val) return;
+      const parts = val.split('-');
+      currentDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      updateUI();
+      loadData();
+    }
+
+    function onMonthInputChanged(val) {
+      if (!val) return;
+      const parts = val.split('-');
+      currentDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+      updateUI();
+      loadData();
+    }
+
+    // 更新界面状态
+    function updateUI() {
+      // 切换 Tab 激活状态
+      document.querySelectorAll('.period-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.period === currentPeriod);
+      });
+
+      const now = new Date();
+      const textEl = document.getElementById('dateDisplayText');
+      const quickBtn = document.getElementById('quickNowBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const dateInput = document.getElementById('hiddenDateInput');
+      const monthInput = document.getElementById('hiddenMonthInput');
+      const cardLabel = document.getElementById('cardTokensLabel');
+      const footSummary = document.getElementById('footModelSummary');
+
+      let isCurrent = false;
+
+      if (currentPeriod === 'day') {
+        isCurrent = isSameDay(currentDate, now);
+        const dayName = WEEKDAY_NAMES[currentDate.getDay()];
+        textEl.innerText = `${formatDate(currentDate)} ${dayName}`;
+        quickBtn.innerText = '今天';
+        prevBtn.title = '前一天';
+        nextBtn.title = '后一天';
+
+        dateInput.value = formatDate(currentDate);
+
+        cardLabel.innerText = isCurrent ? '今日总消耗 Tokens' : '当日总消耗 Tokens';
+
+      } else if (currentPeriod === 'week') {
+        isCurrent = isSameWeek(currentDate, now);
+        const { monday, sunday } = getWeekRange(currentDate);
+        const { year, week } = getWeekNumber(monday);
+        textEl.innerText = `${year}年 第${week}周 (${formatShortDate(monday)} ~ ${formatShortDate(sunday)})`;
+        quickBtn.innerText = '本周';
+        prevBtn.title = '上一周';
+        nextBtn.title = '下一周';
+
+        dateInput.value = formatDate(currentDate);
+
+        cardLabel.innerText = isCurrent ? '本周总消耗 Tokens' : '当周总消耗 Tokens';
+
+      } else if (currentPeriod === 'month') {
+        isCurrent = isSameMonth(currentDate, now);
+        const y = currentDate.getFullYear();
+        const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+        textEl.innerText = `${y}年 ${m}月`;
+        quickBtn.innerText = '本月';
+        prevBtn.title = '上个月';
+        nextBtn.title = '下个月';
+
+        monthInput.value = `${y}-${m}`;
+
+        cardLabel.innerText = isCurrent ? '本月总消耗 Tokens' : '当月总消耗 Tokens';
+      }
+
+      quickBtn.classList.toggle('is-current', isCurrent);
+      quickBtn.title = isCurrent ? '当前正处于最新周期' : `点击快速回到当前${quickBtn.innerText}`;
+    }
 
     async function loadData() {
-      const d = datePicker.value || localIso;
+      let startDate = '';
+      let endDate = '';
+
+      if (currentPeriod === 'day') {
+        startDate = formatDate(currentDate);
+        endDate = startDate;
+      } else if (currentPeriod === 'week') {
+        const { monday, sunday } = getWeekRange(currentDate);
+        startDate = formatDate(monday);
+        endDate = formatDate(sunday);
+      } else if (currentPeriod === 'month') {
+        const { firstDay, lastDay } = getMonthRange(currentDate);
+        startDate = formatDate(firstDay);
+        endDate = formatDate(lastDay);
+      }
+
       const byM = document.getElementById('byMachineCheck').checked ? '&by_machine=1' : '';
+      const url = `/api/daily?period=${currentPeriod}&start_date=${startDate}&end_date=${endDate}&date=${formatDate(currentDate)}${byM}`;
+
       try {
-        const res = await fetch(`/api/daily?date=${d}${byM}`);
+        const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         render(data);
@@ -283,20 +754,29 @@
       // 设备分布
       const mBar = document.getElementById('machinesBar');
       if (machines.length === 0) {
-        mBar.innerHTML = `<div style="color: var(--muted); font-size: 13px;">该日期暂无设备上报</div>`;
+        mBar.innerHTML = `<div style="color: var(--muted); font-size: 13px;">该周期暂无设备上报</div>`;
       } else {
-        mBar.innerHTML = machines.map(m => `
-          <div class="machine-chip">
-            <div>
-              <strong>${m.machine}</strong>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">最后上报: ${m.last_seen.split('T')[1]?.slice(0,5) || m.last_seen.slice(11,16) || m.last_seen}</div>
+        mBar.innerHTML = machines.map(m => {
+          let timeDisplay = m.last_seen || '';
+          if (timeDisplay.includes('T')) {
+            const parts = timeDisplay.split('T');
+            timeDisplay = `${parts[0].slice(5)} ${parts[1].slice(0, 5)}`;
+          } else if (timeDisplay.length >= 16) {
+            timeDisplay = timeDisplay.slice(5, 16);
+          }
+          return `
+            <div class="machine-chip">
+              <div>
+                <strong>${m.machine}</strong>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">最后上报: ${timeDisplay}</div>
+              </div>
+              <div>
+                <div style="font-weight: 600;">${nf.format(m.tokens)}</div>
+                <div style="font-size: 12px; color: var(--green-dark);">${usd(m.cost)}</div>
+              </div>
             </div>
-            <div>
-              <div style="font-weight: 600;">${nf.format(m.tokens)}</div>
-              <div style="font-size: 12px; color: var(--green);">${usd(m.cost)}</div>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
 
       // 明细表格
@@ -304,7 +784,7 @@
       const tfoot = document.getElementById('tableFoot');
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">该日期暂无使用记录</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">该周期暂无使用记录</td></tr>`;
         tfoot.style.display = 'none';
         return;
       }
@@ -324,7 +804,11 @@
       `).join('');
 
       // 底部总计
-      document.getElementById('footModelSummary').innerText = `${items.length} 个模型`;
+      let periodLabel = '全天总计';
+      if (currentPeriod === 'week') periodLabel = '全周总计';
+      else if (currentPeriod === 'month') periodLabel = '全月总计';
+      document.getElementById('footModelSummary').innerText = `${periodLabel} (${items.length} 个模型)`;
+
       document.getElementById('footInput').innerText = nf.format(totals.input);
       document.getElementById('footOutput').innerText = nf.format(totals.output);
       document.getElementById('footCR').innerText = nf.format(totals.cr);
@@ -334,7 +818,10 @@
       tfoot.style.display = '';
     }
 
+    // 初始化
+    updateUI();
     loadData();
+
     // 默认每 30 秒轮询一次
     setInterval(() => loadData(), 30000);
   </script>

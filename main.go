@@ -59,10 +59,13 @@ type MachineStat struct {
 }
 
 type DailyResponse struct {
-	Date     string        `json:"date"`
-	Items    []DailyItem   `json:"items"`
-	Machines []MachineStat `json:"machines"`
-	Totals   struct {
+	Date      string        `json:"date"`
+	StartDate string        `json:"start_date,omitempty"`
+	EndDate   string        `json:"end_date,omitempty"`
+	Period    string        `json:"period,omitempty"`
+	Items     []DailyItem   `json:"items"`
+	Machines  []MachineStat `json:"machines"`
+	Totals    struct {
 		Input  int64   `json:"input"`
 		Output int64   `json:"output"`
 		CR     int64   `json:"cr"`
@@ -212,38 +215,93 @@ func handleReport(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func parseDateRange(period, dateStr, startDateStr, endDateStr string) (startDate, endDate string) {
+	if startDateStr != "" && endDateStr != "" {
+		if _, err1 := time.Parse("2006-01-02", startDateStr); err1 == nil {
+			if _, err2 := time.Parse("2006-01-02", endDateStr); err2 == nil {
+				return startDateStr, endDateStr
+			}
+		}
+	}
+
+	baseDate := time.Now()
+	if dateStr != "" {
+		if t, err := time.Parse("2006-01-02", dateStr); err == nil {
+			baseDate = t
+		} else if t, err := time.Parse("2006-01", dateStr); err == nil {
+			baseDate = t
+		}
+	}
+
+	switch strings.ToLower(period) {
+	case "week":
+		weekday := int(baseDate.Weekday())
+		if weekday == 0 {
+			weekday = 7
+		}
+		monday := baseDate.AddDate(0, 0, -(weekday - 1))
+		sunday := monday.AddDate(0, 0, 6)
+		return monday.Format("2006-01-02"), sunday.Format("2006-01-02")
+	case "month":
+		firstDay := time.Date(baseDate.Year(), baseDate.Month(), 1, 0, 0, 0, 0, baseDate.Location())
+		lastDay := firstDay.AddDate(0, 1, -1)
+		return firstDay.Format("2006-01-02"), lastDay.Format("2006-01-02")
+	default:
+		d := baseDate.Format("2006-01-02")
+		return d, d
+	}
+}
+
 func handleDaily(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	date := r.URL.Query().Get("date")
-	if date == "" {
-		date = time.Now().Format("2006-01-02")
+	period := r.URL.Query().Get("period")
+	if period == "" {
+		period = "day"
+	}
+	dateParam := r.URL.Query().Get("date")
+	startDateParam := r.URL.Query().Get("start_date")
+	endDateParam := r.URL.Query().Get("end_date")
+
+	startDate, endDate := parseDateRange(period, dateParam, startDateParam, endDateParam)
+	displayDate := dateParam
+	if displayDate == "" {
+		displayDate = startDate
 	}
 
 	resp := DailyResponse{
-		Date:     date,
-		Items:    make([]DailyItem, 0),
-		Machines: make([]MachineStat, 0),
+		Date:      displayDate,
+		StartDate: startDate,
+		EndDate:   endDate,
+		Period:    period,
+		Items:     make([]DailyItem, 0),
+		Machines:  make([]MachineStat, 0),
 	}
 
-	// 1. Query model-level records for this date (supports ?by_machine=1 to view breakdown per machine)
+	// 1. Query model-level records for this date/range (supports ?by_machine=1 to view breakdown per machine)
 	byMachine := r.URL.Query().Get("by_machine") == "1" || r.URL.Query().Get("by_machine") == "true"
 	var query string
 	if byMachine {
 		query = `
-			SELECT date, client, model,
-			       input, output, cache_read, cache_write, total, cost,
+			SELECT client, model,
+			       SUM(input) AS input,
+			       SUM(output) AS output,
+			       SUM(cache_read) AS cr,
+			       SUM(cache_write) AS cw,
+			       SUM(total) AS total,
+			       SUM(cost) AS cost,
 			       machine AS machines
 			FROM usage_records
-			WHERE date = ?
+			WHERE date >= ? AND date <= ?
+			GROUP BY machine, client, model
 			ORDER BY cost DESC, total DESC
 		`
 	} else {
 		query = `
-			SELECT date, client, model,
+			SELECT client, model,
 			       SUM(input) AS input,
 			       SUM(output) AS output,
 			       SUM(cache_read) AS cr,
@@ -252,13 +310,13 @@ func handleDaily(w http.ResponseWriter, r *http.Request) {
 			       SUM(cost) AS cost,
 			       GROUP_CONCAT(DISTINCT machine) AS machines
 			FROM usage_records
-			WHERE date = ?
-			GROUP BY date, client, model
+			WHERE date >= ? AND date <= ?
+			GROUP BY client, model
 			ORDER BY cost DESC, total DESC
 		`
 	}
 
-	rows, err := db.Query(query, date)
+	rows, err := db.Query(query, startDate, endDate)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"query failed: %v"}`, err), http.StatusInternalServerError)
 		return
@@ -268,11 +326,16 @@ func handleDaily(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var item DailyItem
 		if err := rows.Scan(
-			&item.Date, &item.Client, &item.Model,
+			&item.Client, &item.Model,
 			&item.Input, &item.Output, &item.CR, &item.CW,
 			&item.Total, &item.Cost, &item.Machines,
 		); err != nil {
 			continue
+		}
+		if startDate == endDate {
+			item.Date = startDate
+		} else {
+			item.Date = fmt.Sprintf("%s ~ %s", startDate, endDate)
 		}
 		resp.Items = append(resp.Items, item)
 		resp.Totals.Input += item.Input
@@ -283,14 +346,14 @@ func handleDaily(w http.ResponseWriter, r *http.Request) {
 		resp.Totals.Cost += item.Cost
 	}
 
-	// 2. Query per-machine breakdown for this date
+	// 2. Query per-machine breakdown for this period
 	mRows, err := db.Query(`
 		SELECT machine, MAX(updated_at) AS last_seen, SUM(total) AS tokens, SUM(cost) AS cost
 		FROM usage_records
-		WHERE date = ?
+		WHERE date >= ? AND date <= ?
 		GROUP BY machine
 		ORDER BY cost DESC
-	`, date)
+	`, startDate, endDate)
 	if err == nil {
 		defer mRows.Close()
 		for mRows.Next() {
