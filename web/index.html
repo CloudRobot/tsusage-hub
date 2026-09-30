@@ -378,6 +378,592 @@
       color: var(--muted);
       font-size: 14px;
     }
+
+    /* ============ 热力图 (Activity Heatmap) ============ */
+    .heatmap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s ease;
+    }
+    .heatmap-card:hover {
+      box-shadow: var(--card-shadow-hover);
+    }
+    .heatmap-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .heatmap-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .heatmap-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .heatmap-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .heatmap-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .hm-segmented-tabs {
+      display: inline-flex;
+      background: rgba(120, 120, 128, 0.12);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .hm-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted-dark);
+      padding: 4px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .hm-tab-btn:hover {
+      color: var(--text);
+    }
+    .hm-tab-btn.active {
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 热力图指标摘要统计条 */
+    .heatmap-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+    }
+    .hm-stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hm-stat-item .hm-stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .hm-stat-item .hm-stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .hm-stat-item .hm-stat-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* 热力图主舞台：左侧星期标尺 + 右侧月份与网格 */
+    .heatmap-scroll {
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+      scrollbar-width: thin;
+    }
+    .heatmap-stage {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: max-content;
+      user-select: none;
+    }
+    .hm-weekday-col {
+      display: flex;
+      flex-direction: column;
+      padding-top: 22px; /* 与月份标签高度吻合 */
+      gap: 3px;
+      width: 26px;
+      flex-shrink: 0;
+    }
+    .hm-weekday-label {
+      height: 13px;
+      line-height: 13px;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: right;
+      padding-right: 4px;
+      font-weight: 500;
+    }
+    .hm-main-area {
+      display: flex;
+      flex-direction: column;
+    }
+    .hm-month-labels {
+      position: relative;
+      height: 18px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .hm-month-label {
+      position: absolute;
+      white-space: nowrap;
+      transform: translateX(0);
+    }
+    .heatmap-grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-rows: repeat(7, 13px);
+      grid-auto-columns: 13px;
+      gap: 3px;
+      width: max-content;
+    }
+    .hm-cell {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      background: #ebedf0;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .hm-cell.has-data {
+      cursor: pointer;
+    }
+    .hm-cell:hover {
+      transform: scale(1.35);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      z-index: 10;
+      position: relative;
+    }
+    .hm-cell.today {
+      outline: 1.5px solid var(--text);
+      outline-offset: 1px;
+    }
+    .hm-cell.selected {
+      box-shadow: 0 0 0 2.5px var(--primary) !important;
+      outline: 1px solid #ffffff;
+      z-index: 8;
+      position: relative;
+    }
+
+    /* 热力图底部图例与提示 */
+    .hm-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .hm-footer-hint {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hm-legend {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hm-legend .hm-cell {
+      cursor: default;
+    }
+    .hm-legend .hm-cell:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .hm-max-label {
+      margin-left: 8px;
+      font-weight: 600;
+      color: var(--muted-dark);
+    }
+
+    .hm-tooltip {
+      position: fixed;
+      background: rgba(29, 29, 31, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 9px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      white-space: nowrap;
+      line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+      transition: opacity 0.1s ease;
+    }
+    .hm-tooltip .hm-tip-date {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+      color: #ffffff;
+    }
+    .hm-tooltip .hm-tip-body {
+      color: rgba(255, 255, 255, 0.88);
+      font-variant-numeric: tabular-nums;
+    }
+    .hm-tooltip .hm-tip-action {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #70b4ff;
+    }
+
+    /* ============ 厂商统计与展开模型细节 ============ */
+    .section-header-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .section-header-flex .section-title {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-count-badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0, 113, 227, 0.1);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .vendor-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .vendor-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted-dark);
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+    .vendor-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #ffffff;
+    }
+    .vendor-search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      width: 140px;
+      transition: all 0.18s;
+    }
+    .vendor-search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+      width: 180px;
+    }
+
+    .vendors-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s ease;
+    }
+    .vendors-card:hover {
+      box-shadow: var(--card-shadow-hover);
+    }
+    .vendor-row {
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+    .vendor-row:last-child {
+      margin-bottom: 0;
+    }
+    .vendor-row:hover {
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+    .vendor-row.expanded {
+      border-color: rgba(0, 113, 227, 0.25);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .vendor-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+      background: #ffffff;
+      transition: background 0.15s ease;
+    }
+    .vendor-head:hover {
+      background: #fafafc;
+    }
+    .vendor-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .vendor-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .vendor-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .vendor-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .vendor-badge-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 7px;
+      border-radius: 6px;
+      background: #f2f2f7;
+      color: var(--muted-dark);
+    }
+    .vendor-badge-tag.highlight {
+      background: var(--green-subtle);
+      color: var(--green-dark);
+    }
+    .vendor-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .vendor-stats {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      text-align: right;
+    }
+    .vendor-stat-val {
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .vendor-stat-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 1px;
+    }
+    .vendor-caret {
+      color: var(--muted);
+      transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+    }
+    .vendor-row.expanded .vendor-caret {
+      transform: rotate(90deg);
+      color: var(--primary);
+    }
+    .vendor-share-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: #f2f2f7;
+      margin: 0 18px 12px 70px;
+      overflow: hidden;
+    }
+    .vendor-share-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.35s ease;
+    }
+
+    /* 点开后的各个模型细节面板 */
+    .vendor-detail {
+      display: none;
+      padding: 16px 20px 20px 20px;
+      background: #fafbfc;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .vendor-row.expanded .vendor-detail {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .vendor-inner-summary {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 10px 14px;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+    .vendor-summary-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .vendor-summary-chip .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .vendor-summary-chip strong {
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .vendor-table-wrapper {
+      overflow-x: auto;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+    }
+    .vendor-model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .vendor-model-table th {
+      padding: 9px 12px;
+      background: #f9f9fb;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .vendor-model-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text);
+    }
+    .vendor-model-table tr:last-child td {
+      border-bottom: none;
+    }
+    .vendor-model-table tr:hover td {
+      background: rgba(0, 113, 227, 0.02);
+    }
+    .vendor-model-table tfoot td {
+      background: #f9f9fb;
+      font-weight: 700;
+      border-top: 1.5px solid var(--border);
+      color: var(--text);
+    }
+
+    .model-name-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .model-name-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .model-alias-hint {
+      font-size: 10px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .vendor-share-meter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vendor-share-mini-bar {
+      flex: 1;
+      height: 5px;
+      background: #f2f2f7;
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 40px;
+    }
+    .vendor-share-mini-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+    .cache-highlight {
+      color: var(--green-dark);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -477,14 +1063,40 @@
       </div>
     </div>
 
+    <!-- 年度使用热力图 (Activity Heatmap) -->
+    <div class="heatmap-card" id="heatmapCard">
+      <div style="color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0;">正在加载热力图...</div>
+    </div>
+
+    <!-- 厂商用量统计（点开后是各个模型的细节） -->
+    <div class="section-header-flex">
+      <div class="section-title">
+        厂商用量统计
+        <span class="section-count-badge" id="vendorCountBadge">0 个厂商</span>
+      </div>
+      <div class="vendor-toolbar">
+        <input type="text" class="vendor-search-input" id="vendorSearchInput" placeholder="🔍 搜索厂商/模型..." oninput="onVendorSearch(this.value)">
+        <select class="vendor-btn" id="vendorSortSelect" onchange="changeVendorSort(this.value)" style="cursor: pointer;">
+          <option value="cost">按费用最高</option>
+          <option value="tokens">按 Tokens 最多</option>
+          <option value="models">按模型数量</option>
+        </select>
+        <button class="vendor-btn" id="vendorExpandAllBtn" onclick="toggleAllVendors()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="7 13 12 18 17 13"></polyline>
+            <polyline points="7 6 12 11 17 6"></polyline>
+          </svg>
+          <span id="vendorExpandAllText">展开全部</span>
+        </button>
+      </div>
+    </div>
+    <div class="vendors-card" id="vendorsCard">
+      <div style="color: var(--muted); font-size: 13px;">暂无厂商数据</div>
+    </div>
+
     <div class="section-title">设备用量分布</div>
     <div class="machines-bar" id="machinesBar">
       <div style="color: var(--muted); font-size: 13px;">暂无上报设备</div>
-    </div>
-
-    <div class="section-title">模型用量分布</div>
-    <div class="models-bar" id="modelsBar">
-      <div style="color: var(--muted); font-size: 13px;">暂无模型数据</div>
     </div>
 
     <div class="section-title">模型明细报表</div>
@@ -523,10 +1135,40 @@
     </div>
   </div>
 
+  <div class="hm-tooltip" id="hmTooltip"></div>
+
   <script>
     const nf = new Intl.NumberFormat('en-US');
     const usd = (n) => '$' + Number(n || 0).toFixed(4);
     const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+    // ============ 厂商识别规则库（按模型名推断，按优先级从上到下匹配） ============
+    const VENDOR_RULES = [
+      { vendor: 'Google',      color: '#4285f4', icon: 'G',  test: /(^|\/)(gemini|gemma|learnlm|veo|imagen)/i },
+      { vendor: 'OpenAI',      color: '#10a37f', icon: 'O',  test: /(^|\/|[-_])(gpt-|o[134](-|\b)|codex|davinci|text-embedding|dall-e|chatgpt)/i },
+      { vendor: 'Anthropic',   color: '#d97757', icon: 'A',  test: /(^|\/)(claude)/i },
+      { vendor: 'DeepSeek',    color: '#205cf5', icon: 'D',  test: /(^|\/)(deepseek)/i },
+      { vendor: 'Moonshot',    color: '#7c5cff', icon: 'M',  test: /(^|\/|[-_])(moonshot|kimi|k[234](-\d+k)?\b)/i },
+      { vendor: '阿里通义',     color: '#6366f1', icon: 'Q',  test: /(^|\/)(qwen|qwq|wanx|dashscope|tongyi|alibaba)/i },
+      { vendor: '智谱 GLM',    color: '#2563eb', icon: 'Z',  test: /(^|\/)(glm-|chatglm|cogview|cogvideo|zhipu)/i },
+      { vendor: '腾讯混元',     color: '#0052d9', icon: 'T',  test: /(^|\/)(hy[345]\b|hy[345]-|hunyuan|tencent)/i },
+      { vendor: '字节豆包',     color: '#007aff', icon: 'B',  test: /(^|\/)(doubao|skylark|bytedance|seed-?\d)/i },
+      { vendor: 'MiniMax',     color: '#ff6a45', icon: 'M',  test: /(^|\/)(minimax|abab)/i },
+      { vendor: 'Meta / Llama',color: '#0668e1', icon: 'L',  test: /(^|\/)(llama|code-llama|muse-spark|meta\/)/i },
+      { vendor: 'Mistral AI',  color: '#ff7000', icon: 'M',  test: /(^|\/)(mistral|mixtral|codestral|pixtral)/i },
+      { vendor: '百度文心',     color: '#2932e1', icon: 'E',  test: /(^|\/)(ernie|qianfan|baidu)/i },
+      { vendor: '阶跃星辰',     color: '#0ea5e9', icon: 'S',  test: /(^|\/)(step-)/i },
+      { vendor: '零一万物',     color: '#eab308', icon: 'Y',  test: /(^|\/)(yi-large|yi-medium|yi-lightning|yi-vision|01-ai)/i },
+      { vendor: 'NVIDIA',      color: '#76b900', icon: 'N',  test: /(^|\/)(nemotron|nvidia)/i },
+      { vendor: '其他',        color: '#8e8e93', icon: '?',  test: /.*/ }
+    ];
+    function detectVendor(modelName) {
+      const m = (modelName || '').trim().toLowerCase();
+      for (const r of VENDOR_RULES) {
+        if (r.test.test(m)) return r;
+      }
+      return VENDOR_RULES[VENDOR_RULES.length - 1];
+    }
 
     // Token 紧凑格式化（K / M / B / T），基于 1000 进制（保留最多2位小数并去除多余0）
     function formatTokens(num) {
@@ -550,9 +1192,21 @@
       return sign + abs.toString();
     }
 
-    // 核心状态
+    // 全局大屏核心状态
     let currentPeriod = 'day'; // 'day' | 'week' | 'month'
     let currentDate = new Date(); // 基准日期（本地时间）
+
+    // 厂商统计状态
+    const vendorExpandState = new Set(); // 记住展开状态，跨刷新与周期保留
+    let vendorSort = 'cost';             // 'cost' | 'tokens' | 'models'
+    let vendorSearchQuery = '';          // 模糊过滤
+    let cachedModelMap = new Map();      // 缓存当前周期的模型聚合数据
+
+    // 热力图状态
+    let heatmapRange = 365;              // 365 | 180 | 90
+    let heatmapMetric = 'tokens';        // 'tokens' | 'cost'
+    let heatmapData = null;              // Map<dateStr, {total, cost}>
+    let selectedHeatmapDate = '';        // 当前选中的热力图日期
 
     // 工具函数：格式化 YYYY-MM-DD
     function formatDate(d) {
@@ -773,8 +1427,6 @@
       const totals = data.totals || { total: 0, cost: 0, input: 0, output: 0, cr: 0, cw: 0 };
 
       // 模型名归一化：合并同一模型在不同客户端/来源下的别名写法
-      // 例: meta/muse-spark-1.3 ≡ muse-spark-1.3；DeepSeek-V4-Flash-Official ≡ deepseek-v4-flash
-      // 两遍式：只有当剥掉后缀后能匹配到其他条目的基础名时才合并，避免把独立模型名改坏
       const modelBaseKey = (name) => {
         let n = (name || 'unknown').trim().toLowerCase();
         n = n.split('#')[0].trim();          // gemini-3.8-flash#billing=api
@@ -787,21 +1439,56 @@
         const base = modelBaseKey(name);
         if (base === 'unknown') return base;
         const stripped = base.replace(MODEL_SUFFIX_RE, '');
-        // 仅当剥后缀后的名字在数据中真实存在（且剥了东西）才合并
         if (stripped !== base && baseKeys.has(stripped)) return stripped;
         return base;
       };
 
-      // 顶部卡片
+      // 1. 全局模型完整聚合 Map（包含 input, output, cr, cw，提供给厂商统计与展开模型细节）
+      const modelMap = new Map();
+      items.forEach(item => {
+        const mName = normalizeModelName(item.model);
+        if (!modelMap.has(mName)) {
+          modelMap.set(mName, {
+            model: mName,
+            rawNames: new Set(),
+            input: 0,
+            output: 0,
+            cr: 0,
+            cw: 0,
+            tokens: 0,
+            cost: 0,
+            clients: new Set(),
+            machines: new Set()
+          });
+        }
+        const entry = modelMap.get(mName);
+        if (item.model && item.model.trim()) entry.rawNames.add(item.model.trim());
+        entry.input += (item.input || 0);
+        entry.output += (item.output || 0);
+        entry.cr += (item.cr || 0);
+        entry.cw += (item.cw || 0);
+        entry.tokens += (item.total || 0);
+        entry.cost += (item.cost || 0);
+        if (item.client) entry.clients.add(item.client);
+        if (item.machines) {
+          item.machines.split(',').forEach(m => {
+            const trimmed = m.trim();
+            if (trimmed) entry.machines.add(trimmed);
+          });
+        }
+      });
+      cachedModelMap = modelMap;
+
+      // 2. 顶部 KPI 卡片
       const totalTokensEl = document.getElementById('totalTokens');
       totalTokensEl.innerText = formatTokens(totals.total || 0);
       totalTokensEl.title = `${nf.format(totals.total || 0)} tokens`;
 
       document.getElementById('totalCost').innerText = usd(totals.cost || 0);
       document.getElementById('activeMachines').innerText = `${machines.length} 台`;
-      document.getElementById('activeModels').innerText = `${new Set(items.map(i => normalizeModelName(i.model))).size} 个`;
+      document.getElementById('activeModels').innerText = `${modelMap.size} 个`;
 
-      // 设备分布
+      // 3. 设备用量分布
       const mBar = document.getElementById('machinesBar');
       if (machines.length === 0) {
         mBar.innerHTML = `<div style="color: var(--muted); font-size: 13px;">该周期暂无设备上报</div>`;
@@ -829,71 +1516,15 @@
         }).join('');
       }
 
-      // 模型用量分布
-      const modBar = document.getElementById('modelsBar');
-      if (items.length === 0) {
-        modBar.innerHTML = `<div style="color: var(--muted); font-size: 13px;">该周期暂无模型使用</div>`;
-      } else {
-        const modelMap = new Map();
-        items.forEach(item => {
-          const mName = normalizeModelName(item.model);
-          if (!modelMap.has(mName)) {
-            modelMap.set(mName, {
-              model: mName,
-              rawNames: new Set(),
-              tokens: 0,
-              cost: 0,
-              clients: new Set(),
-              machines: new Set()
-            });
-          }
-          const entry = modelMap.get(mName);
-          if (item.model && item.model.trim()) entry.rawNames.add(item.model.trim());
-          entry.tokens += (item.total || 0);
-          entry.cost += (item.cost || 0);
-          if (item.client) entry.clients.add(item.client);
-          if (item.machines) {
-            item.machines.split(',').forEach(m => {
-              const trimmed = m.trim();
-              if (trimmed) entry.machines.add(trimmed);
-            });
-          }
-        });
-
-        const modelStats = Array.from(modelMap.values()).sort((a, b) => {
-          if (b.cost !== a.cost) return b.cost - a.cost;
-          return b.tokens - a.tokens;
-        });
-
-        modBar.innerHTML = modelStats.map(m => {
-          const clientText = Array.from(m.clients).join(', ') || '通用';
-          const rawNames = Array.from(m.rawNames);
-          const aliasText = rawNames.length > 1
-            ? `<div style="font-size: 10px; color: var(--muted); margin-top: 1px;" title="${rawNames.join(' | ')}">别名: ${rawNames.length} 个写法</div>`
-            : '';
-          return `
-            <div class="machine-chip">
-              <div>
-                <strong title="${rawNames.join(' | ')}">${m.model}</strong>
-                <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">应用: ${clientText}</div>
-                ${aliasText}
-              </div>
-              <div style="text-align: right;">
-                <div style="font-weight: 600;" title="${nf.format(m.tokens)} tokens">${formatTokens(m.tokens)}</div>
-                <div style="font-size: 12px; color: var(--green-dark);">${usd(m.cost)}</div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // 明细表格
+      // 4. 底层全量模型明细表格
       const tbody = document.getElementById('tableBody');
       const tfoot = document.getElementById('tableFoot');
 
       if (items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="empty-state">该周期暂无使用记录</td></tr>`;
         tfoot.style.display = 'none';
+        renderVendors(modelMap);
+        highlightHeatmapDate(formatDate(currentDate));
         return;
       }
 
@@ -903,19 +1534,18 @@
           <td>${i.model}</td>
           <td class="num" title="${nf.format(i.input)} tokens">${formatTokens(i.input)}</td>
           <td class="num" title="${nf.format(i.output)} tokens">${formatTokens(i.output)}</td>
-          <td class="num" title="${nf.format(i.cr)} tokens">${formatTokens(i.cr)}</td>
+          <td class="num ${i.cr > 0 ? 'cache-highlight' : ''}" title="${nf.format(i.cr)} tokens">${formatTokens(i.cr)}</td>
           <td class="num" title="${nf.format(i.cw)} tokens">${formatTokens(i.cw)}</td>
           <td class="num"><strong title="${nf.format(i.total)} tokens">${formatTokens(i.total)}</strong></td>
-          <td class="num">${usd(i.cost)}</td>
+          <td class="num" style="color: var(--green-dark); font-weight: 600;">${usd(i.cost)}</td>
           <td>${(i.machines || '').split(',').filter(Boolean).map(m => `<span class="tag">${m}</span>`).join('')}</td>
         </tr>
       `).join('');
 
-      // 底部总计
       let periodLabel = '全天总计';
       if (currentPeriod === 'week') periodLabel = '全周总计';
       else if (currentPeriod === 'month') periodLabel = '全月总计';
-      document.getElementById('footModelSummary').innerText = `${periodLabel} (${items.length} 个模型)`;
+      document.getElementById('footModelSummary').innerText = `${periodLabel} (${items.length} 个条目)`;
 
       function setFootToken(id, val) {
         const el = document.getElementById(id);
@@ -930,13 +1560,589 @@
       setFootToken('footTotal', totals.total);
       document.getElementById('footCost').innerText = usd(totals.cost);
       tfoot.style.display = '';
+
+      // 5. 渲染厂商用量统计与点开模型细节
+      renderVendors(modelMap);
+
+      // 6. 热力图联动高亮当前所选日期
+      highlightHeatmapDate(formatDate(currentDate));
+    }
+
+    // ============ 厂商统计：按厂商聚合 + 点开后各个模型细节展示 ============
+    function renderVendors(modelMapToUse) {
+      const modelMap = modelMapToUse || cachedModelMap;
+      const card = document.getElementById('vendorsCard');
+      const badge = document.getElementById('vendorCountBadge');
+
+      if (!modelMap || modelMap.size === 0) {
+        card.innerHTML = `<div style="color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0;">该周期暂无厂商数据</div>`;
+        if (badge) badge.innerText = '0 个厂商';
+        return;
+      }
+
+      // 按厂商聚合
+      const vendorMap = new Map();
+      for (const [mName, m] of modelMap) {
+        const v = detectVendor(mName);
+        if (!vendorMap.has(v.vendor)) {
+          vendorMap.set(v.vendor, {
+            vendor: v.vendor,
+            color: v.color,
+            icon: v.icon,
+            tokens: 0,
+            cost: 0,
+            input: 0,
+            output: 0,
+            cr: 0,
+            cw: 0,
+            models: []
+          });
+        }
+        const entry = vendorMap.get(v.vendor);
+        entry.tokens += m.tokens;
+        entry.cost += m.cost;
+        entry.input += m.input;
+        entry.output += m.output;
+        entry.cr += m.cr;
+        entry.cw += m.cw;
+        entry.models.push(m);
+      }
+
+      let vendors = Array.from(vendorMap.values());
+
+      // 搜索过滤
+      if (vendorSearchQuery) {
+        const q = vendorSearchQuery.toLowerCase();
+        vendors = vendors.filter(v => {
+          if (v.vendor.toLowerCase().includes(q)) return true;
+          return v.models.some(m => m.model.toLowerCase().includes(q) || Array.from(m.rawNames).some(rn => rn.toLowerCase().includes(q)));
+        });
+      }
+
+      // 排序
+      if (vendorSort === 'cost') {
+        vendors.sort((a, b) => (b.cost - a.cost) || (b.tokens - a.tokens));
+      } else if (vendorSort === 'tokens') {
+        vendors.sort((a, b) => (b.tokens - a.tokens) || (b.cost - a.cost));
+      } else if (vendorSort === 'models') {
+        vendors.sort((a, b) => (b.models.length - a.models.length) || (b.cost - a.cost));
+      }
+
+      const totalModelCount = vendors.reduce((s, v) => s + v.models.length, 0);
+      if (badge) badge.innerText = `${vendors.length} 个厂商 · ${totalModelCount} 个模型`;
+
+      if (vendors.length === 0) {
+        card.innerHTML = `<div style="color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0;">未找到匹配 "${vendorSearchQuery}" 的厂商或模型</div>`;
+        return;
+      }
+
+      // 全站大盘基准
+      const grandCost = Array.from(vendorMap.values()).reduce((s, v) => s + v.cost, 0) || 1;
+      const grandTokens = Array.from(vendorMap.values()).reduce((s, v) => s + v.tokens, 0) || 1;
+
+      card.innerHTML = vendors.map(v => {
+        const expanded = vendorExpandState.has(v.vendor);
+        const costPct = ((v.cost / grandCost) * 100).toFixed(1);
+        const tokensPct = ((v.tokens / grandTokens) * 100).toFixed(1);
+        const cacheHitRate = (v.input + v.cr) > 0 ? ((v.cr / (v.input + v.cr)) * 100).toFixed(1) : '0.0';
+
+        // 厂商内部各个模型排序
+        const sortedModels = [...v.models].sort((a, b) => (b.cost - a.cost) || (b.tokens - a.tokens));
+
+        const modelRows = sortedModels.map(m => {
+          const clientTags = Array.from(m.clients).map(c => `<span class="app-tag">${c}</span>`).join(' ') || '<span class="tag">通用</span>';
+          const rawNames = Array.from(m.rawNames);
+          const aliasText = rawNames.length > 1
+            ? `<div class="model-alias-hint" title="${rawNames.join(' | ')}">🔗 ${rawNames.length} 个别名合并</div>`
+            : '';
+          const machineTags = Array.from(m.machines).map(mach => `<span class="tag">${mach}</span>`).join('') || '-';
+          const modelSharePct = v.cost > 0 ? ((m.cost / v.cost) * 100).toFixed(1) : (v.tokens > 0 ? ((m.tokens / v.tokens) * 100).toFixed(1) : '0.0');
+
+          return `
+            <tr>
+              <td>
+                <div class="model-name-cell">
+                  <span class="model-name-title" title="${rawNames.join(' | ')}">${m.model}</span>
+                  ${aliasText}
+                </div>
+              </td>
+              <td>${clientTags}</td>
+              <td class="num" title="${nf.format(m.input)} tokens">${formatTokens(m.input)}</td>
+              <td class="num" title="${nf.format(m.output)} tokens">${formatTokens(m.output)}</td>
+              <td class="num ${m.cr > 0 ? 'cache-highlight' : ''}" title="${nf.format(m.cr)} tokens">${formatTokens(m.cr)}</td>
+              <td class="num" title="${nf.format(m.cw)} tokens">${formatTokens(m.cw)}</td>
+              <td class="num"><strong title="${nf.format(m.tokens)} tokens">${formatTokens(m.tokens)}</strong></td>
+              <td class="num" style="color: var(--green-dark); font-weight: 600;">${usd(m.cost)}</td>
+              <td class="num">
+                <div class="vendor-share-meter">
+                  <div class="vendor-share-mini-bar">
+                    <div class="vendor-share-mini-fill" style="width: ${modelSharePct}%; background: ${v.color};"></div>
+                  </div>
+                  <span style="font-size: 11px; width: 38px; text-align: right; color: var(--muted-dark); font-weight: 500;">${modelSharePct}%</span>
+                </div>
+              </td>
+              <td>${machineTags}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const modelCountText = v.models.length === 1 ? '1 个模型' : `${v.models.length} 个模型`;
+
+        return `
+          <div class="vendor-row ${expanded ? 'expanded' : ''}" data-vendor="${v.vendor}">
+            <div class="vendor-head" onclick="toggleVendor('${v.vendor.replace(/'/g, "\\'")}')">
+              <div class="vendor-badge" style="background: ${v.color};">${v.icon || v.vendor.charAt(0)}</div>
+              <div class="vendor-info">
+                <div class="vendor-name-row">
+                  <span class="vendor-name">${v.vendor}</span>
+                  <span class="vendor-badge-tag">${modelCountText}</span>
+                  <span class="vendor-badge-tag highlight">占总费用 ${costPct}%</span>
+                  <span class="vendor-badge-tag">占总Tokens ${tokensPct}%</span>
+                </div>
+                <div class="vendor-sub">
+                  <span>输入: ${formatTokens(v.input)}</span>
+                  <span>·</span>
+                  <span>输出: ${formatTokens(v.output)}</span>
+                  <span>·</span>
+                  <span>缓存读取: ${formatTokens(v.cr)} (${cacheHitRate}% 命中)</span>
+                </div>
+              </div>
+              <div class="vendor-stats">
+                <div>
+                  <div class="vendor-stat-val" title="${nf.format(v.tokens)} tokens">${formatTokens(v.tokens)}</div>
+                  <div class="vendor-stat-label">tokens</div>
+                </div>
+                <div>
+                  <div class="vendor-stat-val" style="color: var(--green-dark);">${usd(v.cost)}</div>
+                  <div class="vendor-stat-label">预估费用</div>
+                </div>
+              </div>
+              <svg class="vendor-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+            <div class="vendor-share-bar">
+              <div class="vendor-share-fill" style="width: ${costPct}%; background: ${v.color};"></div>
+            </div>
+            <div class="vendor-detail">
+              <div class="vendor-inner-summary">
+                <div class="vendor-summary-chip">
+                  <span class="dot" style="background: ${v.color};"></span>
+                  <span>输入: <strong>${formatTokens(v.input)}</strong></span>
+                </div>
+                <div class="vendor-summary-chip">
+                  <span class="dot" style="background: var(--primary);"></span>
+                  <span>输出: <strong>${formatTokens(v.output)}</strong></span>
+                </div>
+                <div class="vendor-summary-chip">
+                  <span class="dot" style="background: var(--green-dark);"></span>
+                  <span>缓存读取命中: <strong>${formatTokens(v.cr)}</strong> (节省命中率 ${cacheHitRate}%)</span>
+                </div>
+                <div class="vendor-summary-chip">
+                  <span class="dot" style="background: var(--muted);"></span>
+                  <span>缓存写入: <strong>${formatTokens(v.cw)}</strong></span>
+                </div>
+              </div>
+              <div class="vendor-table-wrapper">
+                <table class="vendor-model-table">
+                  <thead>
+                    <tr>
+                      <th>模型名称</th>
+                      <th>所属应用</th>
+                      <th class="num">Input</th>
+                      <th class="num">Output</th>
+                      <th class="num">CacheRead</th>
+                      <th class="num">CacheWrite</th>
+                      <th class="num">总 Tokens</th>
+                      <th class="num">预估费用</th>
+                      <th class="num" style="min-width: 110px;">厂商内占比</th>
+                      <th>贡献设备</th>
+                    </tr>
+                  </thead>
+                  <tbody>${modelRows}</tbody>
+                  <tfoot>
+                    <tr>
+                      <td>厂商小计</td>
+                      <td>${v.models.length} 个模型</td>
+                      <td class="num" title="${nf.format(v.input)} tokens">${formatTokens(v.input)}</td>
+                      <td class="num" title="${nf.format(v.output)} tokens">${formatTokens(v.output)}</td>
+                      <td class="num ${v.cr > 0 ? 'cache-highlight' : ''}" title="${nf.format(v.cr)} tokens">${formatTokens(v.cr)}</td>
+                      <td class="num" title="${nf.format(v.cw)} tokens">${formatTokens(v.cw)}</td>
+                      <td class="num"><strong title="${nf.format(v.tokens)} tokens">${formatTokens(v.tokens)}</strong></td>
+                      <td class="num" style="color: var(--green-dark);">${usd(v.cost)}</td>
+                      <td class="num">100.0%</td>
+                      <td>-</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateExpandAllButtonText();
+    }
+
+    function toggleVendor(vendor) {
+      if (vendorExpandState.has(vendor)) {
+        vendorExpandState.delete(vendor);
+      } else {
+        vendorExpandState.add(vendor);
+      }
+      const row = document.querySelector(`.vendor-row[data-vendor="${vendor}"]`);
+      if (row) row.classList.toggle('expanded', vendorExpandState.has(vendor));
+      updateExpandAllButtonText();
+    }
+
+    function toggleAllVendors() {
+      const vendorRows = document.querySelectorAll('.vendor-row');
+      const allExpanded = Array.from(vendorRows).every(r => r.classList.contains('expanded'));
+
+      if (allExpanded) {
+        vendorExpandState.clear();
+        vendorRows.forEach(r => r.classList.remove('expanded'));
+      } else {
+        vendorRows.forEach(r => {
+          const v = r.dataset.vendor;
+          if (v) vendorExpandState.add(v);
+          r.classList.add('expanded');
+        });
+      }
+      updateExpandAllButtonText();
+    }
+
+    function updateExpandAllButtonText() {
+      const btnText = document.getElementById('vendorExpandAllText');
+      if (!btnText) return;
+      const vendorRows = document.querySelectorAll('.vendor-row');
+      if (vendorRows.length === 0) {
+        btnText.innerText = '展开全部';
+        return;
+      }
+      const allExpanded = Array.from(vendorRows).every(r => r.classList.contains('expanded'));
+      btnText.innerText = allExpanded ? '收起全部' : '展开全部';
+    }
+
+    function changeVendorSort(val) {
+      vendorSort = val;
+      renderVendors();
+    }
+
+    function onVendorSearch(val) {
+      vendorSearchQuery = (val || '').trim();
+      renderVendors();
+    }
+
+    // ============ 热力图 (Activity Heatmap) 深度实现 ============
+    function hmColor(value, max) {
+      if (!value || max <= 0) return '#ebedf0';
+      const r = value / max;
+      if (r > 0.75) return '#216e39';
+      if (r > 0.45) return '#30a14e';
+      if (r > 0.20) return '#40c463';
+      if (r > 0.05) return '#9be9a8';
+      return '#d8f0de';
+    }
+
+    async function loadHeatmap() {
+      try {
+        const res = await fetch(`/api/heatmap?days=${heatmapRange}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        heatmapData = new Map((json.days || []).map(d => [d.date, { total: d.total, cost: d.cost }]));
+        renderHeatmap();
+      } catch (err) {
+        document.getElementById('heatmapCard').innerHTML = `
+          <div style="color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0;">
+            热力图加载失败: ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    function switchHeatmapRange(days) {
+      heatmapRange = days;
+      document.querySelectorAll('.hm-segmented-tabs [data-range]').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.range) === days);
+      });
+      loadHeatmap();
+    }
+
+    function switchHeatmapMetric(metric) {
+      heatmapMetric = metric;
+      document.querySelectorAll('.hm-segmented-tabs [data-metric]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.metric === metric);
+      });
+      renderHeatmap();
+    }
+
+    function renderHeatmap() {
+      const card = document.getElementById('heatmapCard');
+      if (!heatmapData) return;
+
+      const today = new Date();
+      const todayStr = formatDate(today);
+
+      // 计算时间跨度的起始日（对齐到周一）
+      let start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (heatmapRange - 1));
+      const startDow = start.getDay();
+      start.setDate(start.getDate() - (startDow === 0 ? 6 : startDow - 1)); // 往前找该周的周一
+      const end = today;
+
+      // 生成每周数组 (一列 7 行，周一至周日)
+      const weeks = [];
+      let cur = new Date(start);
+      while (cur <= end) {
+        const week = [];
+        for (let i = 0; i < 7; i++) {
+          if (cur <= end) {
+            week.push(new Date(cur));
+          } else {
+            week.push(null);
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+        weeks.push(week);
+      }
+
+      // 计算指标极值与摘要统计
+      let totalUsageTokens = 0;
+      let totalUsageCost = 0;
+      let activeDaysCount = 0;
+      let peakDate = '-';
+      let peakTokens = 0;
+      let peakCost = 0;
+      let maxVal = 0;
+
+      for (const [ds, rec] of heatmapData) {
+        // 只统计处于当前选定时间区间内的天
+        const dObj = new Date(ds);
+        if (dObj >= start && dObj <= end) {
+          totalUsageTokens += (rec.total || 0);
+          totalUsageCost += (rec.cost || 0);
+          if (rec.total > 0) activeDaysCount++;
+
+          const val = heatmapMetric === 'cost' ? rec.cost : rec.total;
+          if (val > maxVal) maxVal = val;
+
+          if (rec.total > peakTokens) {
+            peakTokens = rec.total;
+            peakCost = rec.cost;
+            peakDate = ds;
+          }
+        }
+      }
+
+      const totalCalendarDays = Math.max(1, Math.round((end - start) / 86400000) + 1);
+      const activeRate = ((activeDaysCount / totalCalendarDays) * 100).toFixed(1);
+      const avgDailyTokens = activeDaysCount > 0 ? Math.round(totalUsageTokens / activeDaysCount) : 0;
+
+      // 顶部月份标尺位置计算（每列 13px + 3px gap = 16px）
+      let lastMonth = -1;
+      const monthSpans = [];
+      weeks.forEach((w, colIdx) => {
+        const first = w[0];
+        if (!first) return;
+        const m = first.getMonth();
+        if (m !== lastMonth) {
+          lastMonth = m;
+          monthSpans.push(`<span class="hm-month-label" style="left: ${colIdx * 16}px;">${m + 1}月</span>`);
+        }
+      });
+
+      // 单元格网格生成
+      const cells = weeks.map(week => {
+        return week.map(d => {
+          if (!d) return `<div class="hm-cell" style="visibility: hidden;"></div>`;
+          const ds = formatDate(d);
+          const rec = heatmapData.get(ds);
+          const tokens = rec ? rec.total : 0;
+          const cost = rec ? rec.cost : 0;
+          const val = heatmapMetric === 'cost' ? cost : tokens;
+          const isToday = ds === todayStr;
+          const isSelected = selectedHeatmapDate ? ds === selectedHeatmapDate : ds === formatDate(currentDate);
+          const color = hmColor(val, maxVal);
+
+          return `
+            <div class="hm-cell ${val > 0 ? 'has-data' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}"
+                 style="background: ${color};"
+                 data-date="${ds}"
+                 data-tokens="${tokens}"
+                 data-cost="${cost}"
+                 onclick="jumpToDate('${ds}')"
+                 onmouseenter="showHmTip(this, event)"
+                 onmouseleave="hideHmTip()">
+            </div>
+          `;
+        }).join('');
+      }).join('');
+
+      card.innerHTML = `
+        <div class="heatmap-head">
+          <div class="heatmap-title-group">
+            <div class="heatmap-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>算力活跃热力图</span>
+            </div>
+            <div class="heatmap-subtitle">追踪长周期 Token 消耗规律与算力投入 · 点击任意日期方块即可下钻查看全天模型明细</div>
+          </div>
+          <div class="heatmap-actions">
+            <div class="hm-segmented-tabs">
+              <button class="hm-tab-btn ${heatmapRange === 365 ? 'active' : ''}" data-range="365" onclick="switchHeatmapRange(365)">近1年</button>
+              <button class="hm-tab-btn ${heatmapRange === 180 ? 'active' : ''}" data-range="180" onclick="switchHeatmapRange(180)">近半年</button>
+              <button class="hm-tab-btn ${heatmapRange === 90 ? 'active' : ''}" data-range="90" onclick="switchHeatmapRange(90)">近3个月</button>
+            </div>
+            <div class="hm-segmented-tabs">
+              <button class="hm-tab-btn ${heatmapMetric === 'tokens' ? 'active' : ''}" data-metric="tokens" onclick="switchHeatmapMetric('tokens')">Tokens</button>
+              <button class="hm-tab-btn ${heatmapMetric === 'cost' ? 'active' : ''}" data-metric="cost" onclick="switchHeatmapMetric('cost')">USD 费用</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="heatmap-stats-strip">
+          <div class="hm-stat-item">
+            <div class="hm-stat-label">期间累计消耗</div>
+            <div class="hm-stat-value" title="${nf.format(totalUsageTokens)} tokens">${formatTokens(totalUsageTokens)}</div>
+            <div class="hm-stat-sub" style="color: var(--green-dark);">${usd(totalUsageCost)}</div>
+          </div>
+          <div class="hm-stat-item">
+            <div class="hm-stat-label">活跃天数与比例</div>
+            <div class="hm-stat-value">${activeDaysCount} 天 <span style="font-size: 11px; font-weight: normal; color: var(--muted);">/ ${totalCalendarDays} 天</span></div>
+            <div class="hm-stat-sub">出勤活跃率 ${activeRate}%</div>
+          </div>
+          <div class="hm-stat-item">
+            <div class="hm-stat-label">历史单日峰值</div>
+            <div class="hm-stat-value" title="${nf.format(peakTokens)} tokens">${formatTokens(peakTokens)}</div>
+            <div class="hm-stat-sub">${peakDate} · ${usd(peakCost)}</div>
+          </div>
+          <div class="hm-stat-item">
+            <div class="hm-stat-label">活跃日均消耗</div>
+            <div class="hm-stat-value" title="${nf.format(avgDailyTokens)} tokens">${formatTokens(avgDailyTokens)}</div>
+            <div class="hm-stat-sub">平均每活跃日</div>
+          </div>
+        </div>
+
+        <div class="heatmap-scroll">
+          <div class="heatmap-stage">
+            <div class="hm-weekday-col">
+              <span class="hm-weekday-label">一</span>
+              <span class="hm-weekday-label"></span>
+              <span class="hm-weekday-label">三</span>
+              <span class="hm-weekday-label"></span>
+              <span class="hm-weekday-label">五</span>
+              <span class="hm-weekday-label"></span>
+              <span class="hm-weekday-label">日</span>
+            </div>
+            <div class="hm-main-area">
+              <div class="hm-month-labels">${monthSpans.join('')}</div>
+              <div class="heatmap-grid">${cells}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hm-footer">
+          <div class="hm-footer-hint">
+            <span>💡 提示：点击任意方块下钻当日大屏；高亮圆圈表示当前大屏所在日期</span>
+          </div>
+          <div class="hm-legend">
+            <span>少</span>
+            <div class="hm-cell" style="background: #ebedf0;"></div>
+            <div class="hm-cell" style="background: #d8f0de;"></div>
+            <div class="hm-cell" style="background: #9be9a8;"></div>
+            <div class="hm-cell" style="background: #40c463;"></div>
+            <div class="hm-cell" style="background: #30a14e;"></div>
+            <div class="hm-cell" style="background: #216e39;"></div>
+            <span>多</span>
+            <span class="hm-max-label">最大峰值: ${heatmapMetric === 'cost' ? usd(maxVal) : formatTokens(maxVal)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function highlightHeatmapDate(dateStr) {
+      selectedHeatmapDate = dateStr;
+      document.querySelectorAll('.hm-cell[data-date]').forEach(cell => {
+        cell.classList.toggle('selected', cell.dataset.date === dateStr);
+      });
+    }
+
+    function showHmTip(el, event) {
+      const tip = document.getElementById('hmTooltip');
+      if (!tip) return;
+      const dateStr = el.dataset.date || '';
+      const tokens = Number(el.dataset.tokens || 0);
+      const cost = Number(el.dataset.cost || 0);
+
+      let dayOfWeek = '';
+      if (dateStr) {
+        const parts = dateStr.split('-');
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        dayOfWeek = WEEKDAY_NAMES[d.getDay()] || '';
+      }
+
+      tip.innerHTML = `
+        <div class="hm-tip-date">${dateStr} (${dayOfWeek})</div>
+        <div class="hm-tip-body">消耗: <strong>${formatTokens(tokens)}</strong> (${nf.format(tokens)} tokens)</div>
+        <div class="hm-tip-body">费用: <strong>${usd(cost)}</strong></div>
+        <div class="hm-tip-action">👆 点击下钻该日大屏明细</div>
+      `;
+      tip.style.display = 'block';
+
+      const rect = el.getBoundingClientRect();
+      const tipWidth = 200;
+      let left = rect.left + rect.width / 2 - tipWidth / 2;
+      if (left < 10) left = 10;
+      if (left + tipWidth > window.innerWidth - 10) left = window.innerWidth - tipWidth - 10;
+
+      let top = rect.top - 82;
+      if (top < 10) top = rect.bottom + 10;
+
+      tip.style.left = `${left}px`;
+      tip.style.top = `${top}px`;
+    }
+
+    function hideHmTip() {
+      const tip = document.getElementById('hmTooltip');
+      if (tip) tip.style.display = 'none';
+    }
+
+    function jumpToDate(dateStr) {
+      if (!dateStr) return;
+      const p = dateStr.split('-');
+      currentDate = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      highlightHeatmapDate(dateStr);
+
+      if (currentPeriod !== 'day') {
+        currentPeriod = 'day';
+        updateUI();
+        loadData();
+      } else {
+        updateUI();
+        loadData();
+      }
+
+      // 平滑移动到核心指标卡片区域，方便查看明细
+      const target = document.querySelector('.cards');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     // 初始化
     updateUI();
     loadData();
+    loadHeatmap();
 
-    // 默认每 30 秒轮询一次
+    // 热力图低频刷新（15 分钟一次）
+    setInterval(() => loadHeatmap(), 15 * 60 * 1000);
+
+    // 大屏数据每 30 秒轮询一次
     setInterval(() => loadData(), 30000);
   </script>
 </body>

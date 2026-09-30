@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -56,6 +57,12 @@ type MachineStat struct {
 	LastSeen string  `json:"last_seen"`
 	Tokens   int64   `json:"tokens"`
 	Cost     float64 `json:"cost"`
+}
+
+type HeatmapDay struct {
+	Date  string  `json:"date"`
+	Total int64   `json:"total"`
+	Cost  float64 `json:"cost"`
 }
 
 type DailyResponse struct {
@@ -368,6 +375,60 @@ func handleDaily(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
+// /api/heatmap: per-day totals for the contribution heatmap (default last 372 days)
+func handleHeatmap(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	days := 372
+	if d, err := strconv.Atoi(r.URL.Query().Get("days")); err == nil && d > 0 && d <= 1096 {
+		days = d
+	}
+
+	endDate := time.Now().Format("2006-01-02")
+	startDate := time.Now().AddDate(0, 0, -(days - 1)).Format("2006-01-02")
+	if s := r.URL.Query().Get("start_date"); s != "" {
+		if _, err := time.Parse("2006-01-02", s); err == nil {
+			startDate = s
+		}
+	}
+	if e := r.URL.Query().Get("end_date"); e != "" {
+		if _, err := time.Parse("2006-01-02", e); err == nil {
+			endDate = e
+		}
+	}
+
+	rows, err := db.Query(`
+		SELECT date, SUM(total) AS total, SUM(cost) AS cost
+		FROM usage_records
+		WHERE date >= ? AND date <= ?
+		GROUP BY date
+		ORDER BY date
+	`, startDate, endDate)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"query failed: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	list := make([]HeatmapDay, 0)
+	for rows.Next() {
+		var d HeatmapDay
+		if err := rows.Scan(&d.Date, &d.Total, &d.Cost); err == nil {
+			list = append(list, d)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"start_date": startDate,
+		"end_date":   endDate,
+		"days":       list,
+	})
+}
+
 func handleMachines(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(`
 		SELECT machine, MAX(updated_at) AS last_seen, SUM(total) AS tokens, SUM(cost) AS cost
@@ -443,6 +504,7 @@ func main() {
 	mux.HandleFunc("/healthz", handleHealth)
 	mux.HandleFunc("/api/report", handleReport)
 	mux.HandleFunc("/api/daily", handleDaily)
+	mux.HandleFunc("/api/heatmap", handleHeatmap)
 	mux.HandleFunc("/api/machines", handleMachines)
 
 	server := &http.Server{
