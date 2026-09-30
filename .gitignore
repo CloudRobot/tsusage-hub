@@ -5,3 +5,4 @@ tsusage-hub
 *.db-wal
 *.db-shm
 data/
+client/
